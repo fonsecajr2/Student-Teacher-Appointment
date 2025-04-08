@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { login } from '../services/auth';
 import { useNavigate } from 'react-router-dom';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../services/firebase';
 
 export default function Login(){
     const [email, setEmail] = useState("");
@@ -11,8 +13,25 @@ export default function Login(){
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            await login(email, password);
-            navigate("/dashboard");
+            //entering by auth.js
+            const {user} = await login(email, password);
+
+            //getting role
+            const userRef = doc(db, "users", user.uid);
+            const userSnap = await getDoc(userRef);
+
+            if(!userSnap.exists()){
+                throw new Error("User doesn't exists")
+            }
+
+            const {role} = userSnap.data()
+
+            //redirecting on base of role
+            if (role === "student") navigate("/dashboard/student");
+            else if (role === "teacher") navigate("/dashboard/teacher");
+            else if (role === "admin") navigate("/dashboard/admin");
+            else throw new Error("Unknown");
+            
         } catch (error){
             alert("Erro no Login" + error.message)
         }
