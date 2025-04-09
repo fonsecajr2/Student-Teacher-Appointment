@@ -1,20 +1,20 @@
-// src/contexts/AuthContext.jsx
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { auth, db } from "../services/firebase";
+// src/context/ProtectedContext.jsx
+import { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "../services/firebase";
 
-const AuthContext = createContext();
+const ProtectedContext = createContext();
 
-export const useAuth = () => useContext(AuthContext);
-
-export const AuthProvider = ({ children }) => {
+export const ProtectedProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
-useEffect(() => {
+  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setLoading(true);
+
       if (firebaseUser) {
         setUser(firebaseUser);
         const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
@@ -23,6 +23,7 @@ useEffect(() => {
         setUser(null);
         setRole(null);
       }
+
       setLoading(false);
     });
 
@@ -32,9 +33,10 @@ useEffect(() => {
   const logout = () => signOut(auth);
 
   return (
-    <AuthContext.Provider value={{ user }}>
+    <ProtectedContext.Provider value={{ user, role, loading, logout }}>
       {!loading && children}
-    </AuthContext.Provider>
+    </ProtectedContext.Provider>
   );
 };
-  
+
+export const useProtected = () => useContext(ProtectedContext);

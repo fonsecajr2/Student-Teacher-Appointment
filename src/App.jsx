@@ -3,12 +3,13 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/login";
 import Register from "./pages/Register";
+import Unauthorized from "./pages/Unauthorized";
 
 import StudentDashboard from "./pages/dashboard/StudentDashboard";
 import TeacherDashboard from "./pages/dashboard/TeacherDashboard";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
 
-import PrivateRoute from "./routes/PrivateRoute";
+import ProtectedRoute from "./routes/ProtectedRoute";
 
 function App() {
   return (
@@ -23,27 +24,28 @@ function App() {
         <Route
           path="/dashboard/student"
           element={
-            <PrivateRoute>
+            <ProtectedRoute allowedRoles={["student"]}>
               <StudentDashboard />
-            </PrivateRoute>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/dashboard/teacher"
           element={
-            <PrivateRoute>
+            <ProtectedRoute allowedRoles={["teacher"]}>
               <TeacherDashboard />
-            </PrivateRoute>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/dashboard/admin"
           element={
-            <PrivateRoute>
+            <ProtectedRoute allowedRoles={["admin"]}>
               <AdminDashboard />
-            </PrivateRoute>
+            </ProtectedRoute>
           }
         />
+        <Route path="/unauthorized" element={<Unauthorized />} />
       </Routes>
     </Router>
   );
