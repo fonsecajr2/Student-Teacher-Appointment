@@ -5,8 +5,8 @@ import {
   signOut,
   onAuthStateChanged
 } from "firebase/auth";
-
-import { auth } from "./firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "./firebase";
 
 // Registro
 export const signUp = (email, password) => {
@@ -14,8 +14,20 @@ export const signUp = (email, password) => {
 };
 
 // Login
-export const login = (email, password) => {
-  return signInWithEmailAndPassword(auth, email, password);
+export const login = async (email, password) => {
+  const userCredential = await signInWithEmailAndPassword(auth, email, password);
+  const uid = userCredential.user.uid;
+  const docRef = doc(db, "users", uid);
+  const docSnap = await getDoc(docRef);
+
+  if(!docSnap.exists()){
+    throw new Error("User not found in firebase");
+  }
+
+  return {
+    user: userCredential.user,
+    userData: docSnap.data()
+  }
 };
 
 // Logout

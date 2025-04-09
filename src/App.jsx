@@ -3,7 +3,11 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/login";
 import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";
+
+import StudentDashboard from "./pages/dashboard/StudentDashboard";
+import TeacherDashboard from "./pages/dashboard/TeacherDashboard";
+import AdminDashboard from "./pages/dashboard/AdminDashboard";
+
 import PrivateRoute from "./routes/PrivateRoute";
 
 function App() {
@@ -17,10 +21,26 @@ function App() {
 
         {/* Rota protegida */}
         <Route
-          path="/dashboard"
+          path="/dashboard/student"
           element={
             <PrivateRoute>
-              <Dashboard />
+              <StudentDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/dashboard/teacher"
+          element={
+            <PrivateRoute>
+              <TeacherDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/dashboard/admin"
+          element={
+            <PrivateRoute>
+              <AdminDashboard />
             </PrivateRoute>
           }
         />
