@@ -58,14 +58,18 @@ const TeacherDashboard = () => {
     }
   };
 
+  // Separar os agendamentos em pendentes e aprovados
+  const pendingAppointments = appointments.filter((app) => app.status === "pendente");
+  const approvedAppointments = appointments.filter((app) => app.status === "aprovado");
+
   return (
     <div className="min-h-screen bg-amber-400 p-4">
-      <h2 className="text-2xl font-bold mb-4">Agendamentos Recebidos</h2>
+      <h2 className="text-2xl font-bold mb-4">Agendamentos Pendentes</h2>
 
       {loadingAppointments ? (
         <p>Carregando agendamentos...</p>
       ) : (
-        appointments.map((app) => (
+        pendingAppointments.map((app) => (
           <div key={app.id} className="border p-2 my-2 bg-white rounded">
             <p><strong>Aluno:</strong> {app.studentName || "ID: " + app.userId}</p>
             <p><strong>Data:</strong> {app.datetime}</p>
@@ -76,6 +80,20 @@ const TeacherDashboard = () => {
             <button onClick={() => handleStatus(app.id, "cancelado")} className="bg-red-500 text-white px-2 rounded">
               Cancelar
             </button>
+          </div>
+        ))
+      )}
+
+      <h2 className="text-2xl font-bold mt-8">Agendamentos Aprovados</h2>
+
+      {loadingAppointments ? (
+        <p>Carregando agendamentos...</p>
+      ) : (
+        approvedAppointments.map((app) => (
+          <div key={app.id} className="border p-2 my-2 bg-white rounded">
+            <p><strong>Aluno:</strong> {app.studentName || "ID: " + app.userId}</p>
+            <p><strong>Data:</strong> {app.datetime}</p>
+            <p><strong>Status:</strong> {app.status}</p>
           </div>
         ))
       )}
