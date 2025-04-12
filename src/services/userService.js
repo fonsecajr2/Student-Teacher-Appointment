@@ -1,5 +1,5 @@
 // src/services/userService.js
-import { db } from './firebase';
+import { db, auth } from './firebase';
 import {
   doc,
   getDoc,
@@ -11,6 +11,7 @@ import {
   where,
   setDoc
 } from 'firebase/firestore';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 
 const usersCollection = collection(db, "users");
 
@@ -47,10 +48,24 @@ export const approveStudent = async (uid) => {
   await updateDoc(userRef, { approved: true });
 };
 
-// ✅ Criar um novo usuário (ex: por admin)
-export const createUser = async (uid, userData) => {
-  const userRef = doc(db, "users", uid);
-  await setDoc(userRef, userData);
+// 🔄 Atualizado: Criar um novo usuário com autenticação e dados no Firestore
+export const createUser = async (email, userData) => {
+  try {
+    const { password, ...rest } = userData;
+
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const uid = userCredential.user.uid;
+
+    const userToSave = {
+      ...rest,
+      approved: userData.role === "student" ? false : true, // Professores já aprovados
+    };
+
+    await setDoc(doc(db, "users", uid), userToSave);
+  } catch (error) {
+    console.error("Erro ao criar usuário:", error);
+    throw error;
+  }
 };
 
 // ✅ Atualizar um usuário

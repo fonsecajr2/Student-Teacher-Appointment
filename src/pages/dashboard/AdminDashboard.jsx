@@ -8,6 +8,9 @@ import {
   getApprovedStudents
 } from "../../services/userService";
 import { useProtected } from "../../context/ProtectedContext";
+import { db } from "../../services/firebase";
+import { doc, setDoc } from "firebase/firestore";
+
 
 const AdminDashboard = () => {
   const { role } = useProtected();
@@ -32,21 +35,48 @@ const AdminDashboard = () => {
   }, [role]);
 
   const handleCreate = async () => {
-    try {
-      if (!newTeacher.name || !newTeacher.email || !newTeacher.department || !newTeacher.subject) {
+  try {
+    if (!newTeacher.name || !newTeacher.email || !newTeacher.password || !newTeacher.department || !newTeacher.subject) {
       alert("Preencha todos os campos.");
       return;
     }
-      await createUser(newTeacher.email, newTeacher);
-      const updated = await getAllTeachers();
-      setTeachers(updated);
-      setNewTeacher({ name: "", email: "", department: "", subject: "", role: "teacher" });
-      alert("Professor cadastrado com sucesso!");
+
+    // Criar o usuário no Firebase Auth
+    const userCredential = await createUser(newTeacher.email, newTeacher); 
+
+    // Agora, salvar os dados adicionais no Firestore (nome, departamento, etc.)
+    const user = userCredential.user;
+    await createTeacherInFirestore(user.uid, newTeacher); // Função para salvar no Firestore
+
+    const updated = await getAllTeachers(); // Atualiza a lista de professores
+    setTeachers(updated);
+
+    // Limpar os campos do formulário
+    setNewTeacher({ name: "", email: "", department: "", subject: "", password: "", role: "teacher" });
+
+    alert("Professor cadastrado com sucesso!");
+      } catch (error) {
+        console.error("Erro ao criar professor:", error);
+        alert("Erro ao cadastrar professor.");
+      }
+    };
+
+    // Função auxiliar para salvar os dados do professor no Firestore
+  const createTeacherInFirestore = async (uid, teacherData) => {
+    try {
+      await setDoc(doc(db, "users", uid), {
+        name: teacherData.name,
+        email: teacherData.email,
+        department: teacherData.department,
+        subject: teacherData.subject,
+        role: "teacher",
+      });
     } catch (error) {
-      console.error("Erro ao criar professor:", error);
-      alert("Erro ao cadastrar professor.");
+      console.error("Erro ao salvar dados do professor no Firestore:", error);
+      alert("Erro ao salvar dados do professor.");
     }
   };
+
 
   const handleDelete = async (id) => {
     try {
@@ -62,6 +92,7 @@ const AdminDashboard = () => {
   const handleApprove = async (studentId) => {
     await approveStudent(studentId);
     setPendingList(await getPendingStudents());
+    setApprovedList(await getApprovedStudents());
   };
 
 
@@ -81,6 +112,13 @@ const AdminDashboard = () => {
           placeholder="Email"
           value={newTeacher.email}
           onChange={(e) => setNewTeacher({ ...newTeacher, email: e.target.value })}
+          className="border p-2 mr-2 mb-2"
+        />
+        <input
+          type="password"
+          placeholder="Senha"
+          value={newTeacher.password}
+          onChange={(e) => setNewTeacher({ ...newTeacher, password: e.target.value })}
           className="border p-2 mr-2 mb-2"
         />
         <input
