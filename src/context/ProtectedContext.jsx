@@ -16,9 +16,16 @@ export const ProtectedProvider = ({ children }) => {
       setLoading(true);
 
       if (firebaseUser) {
-        setUser(firebaseUser);
         const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-        setRole(userDoc.data()?.role || null);
+        const userData = userDoc.data();
+        setUser({
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          name: userData?.name,
+          role: userData?.role,
+          approved: userData?.approved,
+        });
+        setRole(userData?.role || null);
       } else {
         setUser(null);
         setRole(null);

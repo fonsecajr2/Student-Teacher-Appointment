@@ -34,6 +34,7 @@ export default function Register() {
         role: "student",
         status: "pending",
         createdAt: new Date(),
+        approved: false
     });
 
     navigate("/login"); // Redireciona para login, não para o dashboard

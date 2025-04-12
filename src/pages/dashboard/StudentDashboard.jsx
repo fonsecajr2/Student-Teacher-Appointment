@@ -3,6 +3,7 @@ import { getAllTeachers } from "../../services/userService";
 import { createAppointment } from "../../services/appointmentService";
 import { sendMessage } from "../../services/messageService";
 import { useProtected } from "../../context/ProtectedContext";
+import { useNavigate } from "react-router-dom";
 
 export default function StudentDashboard() {
   const { user } = useProtected();
@@ -10,6 +11,14 @@ export default function StudentDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [dateInputs, setDateInputs] = useState({});
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user?.role === "student" && user?.approved === false) {
+      alert("Sua conta ainda não foi aprovada. Aguarde a aprovação do administrador.");
+      navigate("/login"); // ou para uma tela de espera se quiser
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     getAllTeachers()

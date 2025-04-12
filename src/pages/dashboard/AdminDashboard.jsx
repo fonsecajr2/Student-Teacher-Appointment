@@ -4,7 +4,8 @@ import {
   deleteUser,
   getAllTeachers,
   getPendingStudents,
-  approveStudent
+  approveStudent,
+  getApprovedStudents
 } from "../../services/userService";
 import { useProtected } from "../../context/ProtectedContext";
 
@@ -19,17 +20,24 @@ const AdminDashboard = () => {
     subject: "",
     role: "teacher"
   });
+  const [approvedList, setApprovedList] = useState([]);
+
 
   useEffect(() => {
     if (role === "admin") {
       getAllTeachers().then(setTeachers);
       getPendingStudents().then(setPendingList);
+      getApprovedStudents().then(setApprovedList); 
     }
   }, [role]);
 
   const handleCreate = async () => {
     try {
-      await createUser(newTeacher);
+      if (!newTeacher.name || !newTeacher.email || !newTeacher.department || !newTeacher.subject) {
+      alert("Preencha todos os campos.");
+      return;
+    }
+      await createUser(newTeacher.email, newTeacher);
       const updated = await getAllTeachers();
       setTeachers(updated);
       setNewTeacher({ name: "", email: "", department: "", subject: "", role: "teacher" });
@@ -41,14 +49,21 @@ const AdminDashboard = () => {
   };
 
   const handleDelete = async (id) => {
-    await deleteUser(id);
-    setTeachers(await getAllTeachers());
+    try {
+      await deleteUser(id); // Excluir o estudante
+      const updatedList = await getApprovedStudents(); // Atualiza a lista de estudantes aprovados
+      setApprovedList(updatedList); // Atualiza o estado com a nova lista
+    } catch (error) {
+      console.error("Erro ao excluir o estudante:", error);
+      alert("Erro ao excluir o estudante.");
+    }
   };
 
   const handleApprove = async (studentId) => {
     await approveStudent(studentId);
     setPendingList(await getPendingStudents());
   };
+
 
   return (
     <div className="p-4">
@@ -118,6 +133,22 @@ const AdminDashboard = () => {
           </button>
         </div>
       ))}
+
+
+      <h2 className="text-2xl font-bold mt-6 mb-4">Estudantes Aprovados</h2>
+      {approvedList.map((s) => (
+        <div key={s.id} className="border p-2 my-2 rounded bg-white">
+          <p><strong>Aluno:</strong> {s.name}</p>
+          <p><strong>Email:</strong> {s.email}</p>
+          <button
+            onClick={() => handleDelete(s.id)}
+            className="bg-red-500 text-white px-2 py-1 rounded mt-1"
+          >
+            Excluir
+          </button>
+        </div>
+      ))}
+
     </div>
   );
 };
