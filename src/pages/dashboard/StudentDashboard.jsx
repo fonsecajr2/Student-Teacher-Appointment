@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getAllTeachers } from "../../services/userService";
-import { createAppointment } from "../../services/appointmentService";
+import { createAppointment, getAppointmentsByUserId } from "../../services/appointmentService";
 import { sendMessage } from "../../services/messageService";
 import { useProtected } from "../../context/ProtectedContext";
 import { useNavigate } from "react-router-dom";
@@ -8,9 +8,10 @@ import { useNavigate } from "react-router-dom";
 export default function StudentDashboard() {
   const { user } = useProtected();
   const [teachers, setTeachers] = useState([]);
+  const [appointments, setAppointments] = useState([]);
+  const [dateInputs, setDateInputs] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [dateInputs, setDateInputs] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,7 +32,9 @@ export default function StudentDashboard() {
         console.error(err);
         setLoading(false);
       });
-  }, []);
+
+    getAppointmentsByUserId(user.uid).then(setAppointments); // Carregar os agendamentos do aluno
+  }, [user]);
 
   const handleDateChange = (teacherId, value) => {
     setDateInputs((prev) => ({ ...prev, [teacherId]: value }));
@@ -110,6 +113,15 @@ export default function StudentDashboard() {
           </div>
         ))}
       </div>
+
+      <h2 className="text-2xl font-bold mb-4 text-center">Meus Agendamentos</h2>
+      {appointments.map((appointment) => (
+        <div key={appointment.id} className="border p-2 my-2 bg-white rounded">
+          <p><strong>Professor:</strong> {appointment.teacherName}</p>
+          <p><strong>Data:</strong> {appointment.datetime}</p>
+          <p><strong>Status:</strong> {appointment.status}</p>
+        </div>
+      ))}
     </div>
   );
 }
