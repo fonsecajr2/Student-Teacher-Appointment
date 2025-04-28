@@ -24,10 +24,10 @@ export default function Register() {
     setError("");
 
     try {
-      // Criação do usuário no Firebase Auth
+      // Create user in Firebase Auth
       const { user } = await signUp(form.email, form.password);
 
-      // Criação do documento no Firestore com status: "pending"
+      // Create document in Firestore with status: "pending"
       await setDoc(doc(db, "users", user.uid), {
         name: form.name,
         email: form.email,
@@ -35,59 +35,65 @@ export default function Register() {
         status: "pending",
         createdAt: new Date(),
         approved: false
-    });
+      });
 
-    navigate("/login"); // Redireciona para login, não para o dashboard
-    alert("Register Sended. Wait for aproval");
+      navigate("/login"); // Redirects to login
+      alert("Registration submitted. Please wait for approval.");
 
     } catch (error) {
       console.error(error);
-      setError("Erro ao registrar: " + error.message);
+      setError("Registration failed: " + error.message);
     }
   };
 
   return (
-    <div className='bg-amber-500 min-h-screen flex justify-center items-center'>
-      <form onSubmit={handleSubmit} className='bg-white p-6 rounded shadow-md w-full max-w-sm'>
-        <h2 className='text-xl font-bold mb-4 text-center'>Cadastro de Estudante</h2>
+    <div className="bg-amber-400 min-h-screen flex justify-center items-center p-4">
+      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm">
+        <h2 className="text-2xl font-bold text-center text-amber-500 mb-6">
+          Student Registration
+        </h2>
 
         <input
           type="text"
-          name='name'
+          name="name"
           value={form.name}
-          placeholder='Seu nome'
+          placeholder="Your Name"
           onChange={handleChange}
           required
-          className="w-full p-2 mb-3 border rounded"
+          className="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 transition"
         />
 
         <input
           type="email"
-          name='email'
+          name="email"
           value={form.email}
-          placeholder='email@gmail.com'
+          placeholder="email@gmail.com"
           onChange={handleChange}
           required
-          className="w-full p-2 mb-3 border rounded"
+          className="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 transition"
         />
 
         <input
           type="password"
-          name='password'
+          name="password"
           value={form.password}
-          placeholder='Sua senha'
+          placeholder="Your Password"
           onChange={handleChange}
           required
-          className="w-full p-2 mb-3 border rounded"
+          className="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 transition"
         />
 
-        {error && <p className='text-red-600 mb-3'>{error}</p>}
+        {error && (
+          <p className="text-red-600 text-center mb-4">
+            {error}
+          </p>
+        )}
 
         <button
-          type='submit'
-          className='w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition'
+          type="submit"
+          className="w-full bg-amber-500 text-white font-semibold py-3 rounded-lg hover:bg-amber-600 transition duration-300"
         >
-          Registrar
+          Register
         </button>
       </form>
     </div>
