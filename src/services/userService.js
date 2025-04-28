@@ -15,20 +15,20 @@ import { createUserWithEmailAndPassword } from 'firebase/auth';
 
 const usersCollection = collection(db, "users");
 
-// ✅ Buscar um usuário pelo ID
+// Buscar um usuário pelo ID
 export const getUserById = async (uid) => {
   const docRef = doc(db, "users", uid);
   const docSnap = await getDoc(docRef);
   return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
 };
 
-// ✅ Buscar todos os usuários
+// Buscar todos os usuários
 export const getAllUsers = async () => {
   const snapshot = await getDocs(usersCollection);
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
 
-// ✅ Buscar todos os professores
+// Buscar todos os professores
 export const getAllTeachers = async () => {
   const q = query(usersCollection, where("role", "==", "teacher"));
   const snapshot = await getDocs(q);
@@ -43,7 +43,7 @@ export const getPendingStudents = async () => {
     .map(doc => ({ id: doc.id, ...doc.data() }));
 };
 
-// ✅ Aprovar um estudante
+// Aprovar um estudante
 export const approveStudent = async (studentId) => {
   try {
     console.log(`Approving student with ID: ${studentId}`);
@@ -104,6 +104,6 @@ export const deleteUser = async (uid) => {
 export const getApprovedStudents = async () => {
   const querySnapshot = await getDocs(collection(db, "users"));
   return querySnapshot.docs
-    .filter(doc => doc.data().approved === true) // Filtra estudantes aprovados
+    .filter(doc => doc.data().approved === true && doc.data().role !== "admin") // Filtra estudantes aprovados
     .map(doc => ({ id: doc.id, ...doc.data() }));
 }

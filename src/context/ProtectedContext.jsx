@@ -30,7 +30,7 @@ export const ProtectedProvider = ({ children }) => {
             setRole(userData?.role || null);
           } else {
             // Se o documento do usuário não existir, loga o erro ou limpa o estado
-            console.error("Documento do usuário não encontrado!");
+            console.error("UserDoc not found!");
             setUser(null);
             setRole(null);
           }
