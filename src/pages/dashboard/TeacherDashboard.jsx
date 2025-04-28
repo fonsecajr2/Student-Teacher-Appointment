@@ -11,7 +11,7 @@ const TeacherDashboard = () => {
   const [loadingAppointments, setLoadingAppointments] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(true);
 
-  // Carregar agendamentos e mensagens
+  // Loading appoitements and messages 
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -25,7 +25,7 @@ const TeacherDashboard = () => {
           setMessages(messagesData);
         }
       } catch (error) {
-        console.error("Erro ao carregar dados:", error);
+        console.error("Error loading Data:", error);
       } finally {
         setLoadingAppointments(false);
         setLoadingMessages(false);
@@ -35,39 +35,39 @@ const TeacherDashboard = () => {
     loadData();
   }, [user?.uid]);
 
-  // Atualizar o status de um agendamento
+  // Updating Status Appointments
   const handleStatus = async (appointmentId, status) => {
     try {
       await updateAppointmentStatus(appointmentId, status);
       const updatedAppointments = await getAppointmentsByTeacherId(user.uid);
       setAppointments(updatedAppointments);
     } catch (error) {
-      console.error("Erro ao atualizar status:", error);
+      console.error("Error Updating Status:", error);
     }
   };
 
-  // Enviar uma resposta a uma mensagem
+  // Sending Message
   const handleSendMessage = async (toId, content) => {
     try {
       await sendMessage({ fromId: user.uid, toId, content });
-      setResponse(""); // Limpar o campo de resposta após o envio
+      setResponse("");
       const updatedMessages = await getMessagesByUserId(user.uid);
-      setMessages(updatedMessages); // Recarregar as mensagens
+      setMessages(updatedMessages);
     } catch (error) {
-      console.error("Erro ao enviar mensagem:", error);
+      console.error("Erro Sending Message:", error);
     }
   };
 
   // Separar os agendamentos em pendentes e aprovados
-  const pendingAppointments = appointments.filter((app) => app.status === "pendente");
-  const approvedAppointments = appointments.filter((app) => app.status === "aprovado");
+  const pendingAppointments = appointments.filter((app) => app.status === "pending");
+  const approvedAppointments = appointments.filter((app) => app.status === "aproved");
 
   return (
     <div className="min-h-screen bg-amber-400 p-4">
-      <h2 className="text-2xl font-bold mb-4">Agendamentos Pendentes</h2>
+      <h2 className="text-2xl font-bold mb-4">Pending Appoitemnents</h2>
 
       {loadingAppointments ? (
-        <p>Carregando agendamentos...</p>
+        <p>Loading Appointements</p>
       ) : (
         pendingAppointments.map((app) => (
           <div key={app.id} className="border p-2 my-2 bg-white rounded">
@@ -75,19 +75,19 @@ const TeacherDashboard = () => {
             <p><strong>Data:</strong> {app.datetime}</p>
             <p><strong>Status:</strong> {app.status}</p>
             <button onClick={() => handleStatus(app.id, "aprovado")} className="bg-green-500 text-white px-2 rounded mr-2">
-              Aprovar
+              Aprove
             </button>
             <button onClick={() => handleStatus(app.id, "cancelado")} className="bg-red-500 text-white px-2 rounded">
-              Cancelar
+              Cancel
             </button>
           </div>
         ))
       )}
 
-      <h2 className="text-2xl font-bold mt-8">Agendamentos Aprovados</h2>
+      <h2 className="text-2xl font-bold mt-8">Aproved Appointements</h2>
 
       {loadingAppointments ? (
-        <p>Carregando agendamentos...</p>
+        <p>Loading Appointments...</p>
       ) : (
         approvedAppointments.map((app) => (
           <div key={app.id} className="border p-2 my-2 bg-white rounded">
@@ -98,26 +98,26 @@ const TeacherDashboard = () => {
         ))
       )}
 
-      <h3 className="text-2xl font-bold mt-8">Mensagens</h3>
+      <h3 className="text-2xl font-bold mt-8">Messages</h3>
 
       {loadingMessages ? (
-        <p>Carregando mensagens...</p>
+        <p>Loading Messages...</p>
       ) : (
         messages.map((msg) => (
           <div key={msg.id} className="border p-2 my-2 bg-white rounded">
-            <p><strong>De:</strong> {msg.fromName}</p>
+            <p><strong>From:</strong> {msg.fromName}</p>
             <p>{msg.content}</p>
             <textarea
               value={response}
               onChange={(e) => setResponse(e.target.value)}
-              placeholder="Digite sua resposta"
+              placeholder="Type your answer"
               className="border p-2 mt-2 w-full"
             />
             <button
               onClick={() => handleSendMessage(msg.fromId, response)}
               className="bg-blue-500 text-white px-2 py-1 rounded mt-2"
             >
-              Responder
+              Send
             </button>
           </div>
         ))
