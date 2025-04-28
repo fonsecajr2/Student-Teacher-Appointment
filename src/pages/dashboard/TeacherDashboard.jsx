@@ -11,7 +11,7 @@ const TeacherDashboard = () => {
   const [loadingAppointments, setLoadingAppointments] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(true);
 
-  // Loading appoitements and messages 
+  // Load appointments and messages when the component mounts
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -25,7 +25,7 @@ const TeacherDashboard = () => {
           setMessages(messagesData);
         }
       } catch (error) {
-        console.error("Error loading Data:", error);
+        console.error("Error loading data:", error);
       } finally {
         setLoadingAppointments(false);
         setLoadingMessages(false);
@@ -35,18 +35,18 @@ const TeacherDashboard = () => {
     loadData();
   }, [user?.uid]);
 
-  // Updating Status Appointments
+  // Update appointment status (approve or cancel)
   const handleStatus = async (appointmentId, status) => {
     try {
       await updateAppointmentStatus(appointmentId, status);
       const updatedAppointments = await getAppointmentsByTeacherId(user.uid);
       setAppointments(updatedAppointments);
     } catch (error) {
-      console.error("Error Updating Status:", error);
+      console.error("Error updating status:", error);
     }
   };
 
-  // Sending Message
+  // Send a message to a student
   const handleSendMessage = async (toId, content) => {
     try {
       await sendMessage({ fromId: user.uid, toId, content });
@@ -54,55 +54,75 @@ const TeacherDashboard = () => {
       const updatedMessages = await getMessagesByUserId(user.uid);
       setMessages(updatedMessages);
     } catch (error) {
-      console.error("Erro Sending Message:", error);
+      console.error("Error sending message:", error);
     }
   };
 
-  // Separar os agendamentos em pendentes e aprovados
+  // Separate appointments into pending and approved
   const pendingAppointments = appointments.filter((app) => app.status === "pending");
   const approvedAppointments = appointments.filter((app) => app.status === "aproved");
 
   return (
     <div className="min-h-screen bg-amber-400 p-4">
-      <h2 className="text-2xl font-bold mb-4">Pending Appoitemnents</h2>
+
+      {/* Teacher's Information */}
+      <div className="bg-white p-4 rounded shadow mb-6">
+        <h1 className="text-3xl font-bold mb-2">Welcome, {user?.name || "Teacher"}!</h1>
+        <p className="text-gray-700">Email: {user?.email}</p>
+      </div>
+
+      {/* Pending Appointments */}
+      <h2 className="text-2xl font-bold mb-4">Pending Appointments</h2>
 
       {loadingAppointments ? (
-        <p>Loading Appointements</p>
-      ) : (
+        <p>Loading Appointments...</p>
+      ) : pendingAppointments.length > 0 ? (
         pendingAppointments.map((app) => (
           <div key={app.id} className="border p-2 my-2 bg-white rounded">
-            <p><strong>Aluno:</strong> {app.studentName || "ID: " + app.userId}</p>
-            <p><strong>Data:</strong> {app.datetime}</p>
+            <p><strong>Student:</strong> {app.studentName || "ID: " + app.userId}</p>
+            <p><strong>Date:</strong> {app.datetime}</p>
             <p><strong>Status:</strong> {app.status}</p>
-            <button onClick={() => handleStatus(app.id, "aproved")} className="bg-green-500 text-white px-2 rounded mr-2">
-              Aprove
+            <button
+              onClick={() => handleStatus(app.id, "aproved")}
+              className="bg-green-500 text-white px-2 rounded mr-2 mt-2"
+            >
+              Approve
             </button>
-            <button onClick={() => handleStatus(app.id, "cancelado")} className="bg-red-500 text-white px-2 rounded">
+            <button
+              onClick={() => handleStatus(app.id, "cancelado")}
+              className="bg-red-500 text-white px-2 rounded mt-2"
+            >
               Cancel
             </button>
           </div>
         ))
+      ) : (
+        <p>No pending appointments at the moment.</p>
       )}
 
-      <h2 className="text-2xl font-bold mt-8">Aproved Appointements</h2>
+      {/* Approved Appointments */}
+      <h2 className="text-2xl font-bold mt-8 mb-4">Approved Appointments</h2>
 
       {loadingAppointments ? (
         <p>Loading Appointments...</p>
-      ) : (
+      ) : approvedAppointments.length > 0 ? (
         approvedAppointments.map((app) => (
           <div key={app.id} className="border p-2 my-2 bg-white rounded">
-            <p><strong>Aluno:</strong> {app.studentName || "ID: " + app.userId}</p>
-            <p><strong>Data:</strong> {app.datetime}</p>
+            <p><strong>Student:</strong> {app.studentName || "ID: " + app.userId}</p>
+            <p><strong>Date:</strong> {app.datetime}</p>
             <p><strong>Status:</strong> {app.status}</p>
           </div>
         ))
+      ) : (
+        <p>No approved appointments yet.</p>
       )}
 
-      <h3 className="text-2xl font-bold mt-8">Messages</h3>
+      {/* Messages Section */}
+      <h3 className="text-2xl font-bold mt-8 mb-4">Messages</h3>
 
       {loadingMessages ? (
         <p>Loading Messages...</p>
-      ) : (
+      ) : messages.length > 0 ? (
         messages.map((msg) => (
           <div key={msg.id} className="border p-2 my-2 bg-white rounded">
             <p><strong>From:</strong> {msg.fromName}</p>
@@ -121,6 +141,8 @@ const TeacherDashboard = () => {
             </button>
           </div>
         ))
+      ) : (
+        <p>No new messages.</p>
       )}
     </div>
   );
