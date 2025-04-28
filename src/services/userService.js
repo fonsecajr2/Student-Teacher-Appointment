@@ -35,17 +35,37 @@ export const getAllTeachers = async () => {
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
 
-// ✅ Buscar estudantes não aprovados
+// Função para pegar os estudantes pendentes
 export const getPendingStudents = async () => {
-  const q = query(usersCollection, where("role", "==", "student"), where("approved", "==", false));
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const querySnapshot = await getDocs(collection(db, "users"));
+  return querySnapshot.docs
+    .filter(doc => doc.data().approved !== true) // Filtra estudantes não aprovados
+    .map(doc => ({ id: doc.id, ...doc.data() }));
 };
 
 // ✅ Aprovar um estudante
-export const approveStudent = async (uid) => {
-  const userRef = doc(db, "users", uid);
-  await updateDoc(userRef, { approved: true });
+export const approveStudent = async (studentId) => {
+  try {
+    console.log(`Approving student with ID: ${studentId}`);
+
+    // Referência ao documento do aluno
+    const studentRef = doc(db, 'users', studentId);
+    const studentDoc = await getDoc(studentRef);
+
+    if (!studentDoc.exists()) {
+      throw new Error(`Student with ID: ${studentId} not found.`);
+    }
+
+    // Atualização do status do aluno
+    await updateDoc(studentRef, {
+      approved: true,  // Alterando o campo `approved`, não `status`
+    });
+
+    console.log(`Student ${studentId} approved successfully`);
+  } catch (error) {
+    console.error('Error approving student:', error);
+    throw new Error('Failed to approve student. Please check the permissions.');
+  }
 };
 
 // 🔄 Atualizado: Criar um novo usuário com autenticação e dados no Firestore
@@ -82,7 +102,8 @@ export const deleteUser = async (uid) => {
 
 // ✅ Buscar todos os estudantes aprovados
 export const getApprovedStudents = async () => {
-  const q = query(usersCollection, where("role", "==", "student"), where("approved", "==", true));
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-};
+  const querySnapshot = await getDocs(collection(db, "users"));
+  return querySnapshot.docs
+    .filter(doc => doc.data().approved === true) // Filtra estudantes aprovados
+    .map(doc => ({ id: doc.id, ...doc.data() }));
+}

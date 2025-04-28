@@ -15,6 +15,7 @@ const AdminDashboard = () => {
   const { role } = useProtected();
   const [teachers, setTeachers] = useState([]);
   const [pendingList, setPendingList] = useState([]);
+  const [approvedList, setApprovedList] = useState([]);
   const [newTeacher, setNewTeacher] = useState({
     name: "",
     email: "",
@@ -23,13 +24,33 @@ const AdminDashboard = () => {
     password: "",
     role: "teacher"
   });
-  const [approvedList, setApprovedList] = useState([]);
+
+  // Loading states
+  const [loadingTeachers, setLoadingTeachers] = useState(true);
+  const [loadingPending, setLoadingPending] = useState(true);
+  const [loadingApproved, setLoadingApproved] = useState(true);
 
   useEffect(() => {
     if (role === "admin") {
-      getAllTeachers().then(setTeachers);
-      getPendingStudents().then(setPendingList);
-      getApprovedStudents().then(setApprovedList);
+      setLoadingTeachers(true);
+      setLoadingPending(true);
+      setLoadingApproved(true);
+
+      // Fetch data
+      getAllTeachers().then((data) => {
+        setTeachers(data);
+        setLoadingTeachers(false);
+      });
+
+      getPendingStudents().then((data) => {
+        setPendingList(data);
+        setLoadingPending(false);
+      });
+
+      getApprovedStudents().then((data) => {
+        setApprovedList(data);
+        setLoadingApproved(false);
+      });
     }
   }, [role]);
 
@@ -71,22 +92,63 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    try {
-      await deleteUser(id);
+  const handleDelete = async (id, type) => {
+  try {
+    await deleteUser(id);
+
+    if (type === "teacher") {
+      const updatedTeachers = await getAllTeachers();
+      setTeachers(updatedTeachers);
+    } else if (type === "student") {
       const updatedList = await getApprovedStudents();
       setApprovedList(updatedList);
-    } catch (error) {
-      console.error("Error deleting student:", error);
-      alert("Failed to delete student.");
     }
-  };
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    alert("Failed to delete user.");
+  }
+};
+
 
   const handleApprove = async (studentId) => {
-    await approveStudent(studentId);
-    setPendingList(await getPendingStudents());
-    setApprovedList(await getApprovedStudents());
-  };
+    if (!studentId) {
+      alert("Invalid student ID");
+      return;
+    }
+
+    try {
+      // 1. Optimistically update the UI
+      const updatedPendingList = pendingList.filter((student) => student.id !== studentId);
+      const updatedApprovedList = [
+        ...approvedList,
+        pendingList.find(student => student.id === studentId)
+      ];
+
+      // Update local state immediately
+      setPendingList(updatedPendingList);
+      setApprovedList(updatedApprovedList);
+
+      // 2. Approve the student in the backend (Firebase Firestore)
+      await approveStudent(studentId);
+
+      // 3. Re-fetch data only after the student has been approved (backend update)
+      setLoadingApproved(true);
+
+      const freshPendingList = await getPendingStudents();
+      const freshApprovedList = await getApprovedStudents();
+
+      // Update state again with freshly fetched data
+      setPendingList(freshPendingList);
+      setApprovedList(freshApprovedList);
+
+      setLoadingApproved(false);
+    } catch (error) {
+      console.error("Error approving student:", error);
+      alert("Failed to approve student.");
+    }
+};
+
+
 
   return (
     <div className="min-h-screen bg-amber-400 p-4">
@@ -163,51 +225,63 @@ const AdminDashboard = () => {
 
       <h2 className="text-2xl font-bold mb-4 text-center">Registered Teachers</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {teachers.map((t) => (
-          <div key={t.id} className="bg-white rounded-xl shadow p-4">
-            <p><strong>Name:</strong> {t.name}</p>
-            <p><strong>Email:</strong> {t.email}</p>
-            <p><strong>Department:</strong> {t.department}</p>
-            <p><strong>Subject:</strong> {t.subject}</p>
-            <button
-              onClick={() => handleDelete(t.id)}
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded mt-2"
-            >
-              Delete
-            </button>
-          </div>
-        ))}
+        {loadingTeachers ? (
+          <p className="text-center w-full">Loading teachers...</p>
+        ) : (
+          teachers.map((t) => (
+            <div key={t.id} className="bg-white rounded-xl shadow p-4">
+              <p><strong>Name:</strong> {t.name}</p>
+              <p><strong>Email:</strong> {t.email}</p>
+              <p><strong>Department:</strong> {t.department}</p>
+              <p><strong>Subject:</strong> {t.subject}</p>
+              <button
+                onClick={() => handleDelete(t.id, "teacher")}
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded mt-2"
+              >
+                Delete
+              </button>
+            </div>
+          ))
+        )}
       </div>
 
       <h2 className="text-2xl font-bold mt-8 mb-4 text-center">Approve Students</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {pendingList.map((s) => (
-          <div key={s.id} className="bg-white rounded-xl shadow p-4">
-            <p><strong>Student:</strong> {s.name}</p>
-            <button
-              onClick={() => handleApprove(s.id)}
-              className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded mt-2"
-            >
-              Approve
-            </button>
-          </div>
-        ))}
+        {loadingPending ? (
+          <p className="text-center w-full">Loading pending students...</p>
+        ) : (
+          pendingList.map((s) => (
+            <div key={s.id} className="bg-white rounded-xl shadow p-4">
+              <p><strong>Student:</strong> {s.name}</p>
+              <button
+                onClick={() => handleApprove(s.id)}
+                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded mt-2"
+              >
+                Approve
+              </button>
+            </div>
+          ))
+        )}
       </div>
 
       <h2 className="text-2xl font-bold mt-8 mb-4 text-center">Approved Students</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {approvedList.map((s) => (
-          <div key={s.id} className="bg-white rounded-xl shadow p-4">
-            <p><strong>Student:</strong> {s.name}</p>
-            <p><strong>Email:</strong> {s.email}</p>
-            <button
-              onClick={() => handleDelete(s.id)}
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded mt-2"
-            >
-              Delete
-            </button>
-          </div>
-        ))}
+        {loadingApproved ? (
+          <p className="text-center w-full">Loading approved students...</p>
+        ) : (
+          approvedList.map((s) => (
+            <div key={s.id} className="bg-white rounded-xl shadow p-4">
+              <p><strong>Student:</strong> {s.name}</p>
+              <p><strong>Email:</strong> {s.email}</p>
+              <button
+                onClick={() => handleDelete(s.id, "student")}
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded mt-2"
+              >
+                Delete
+              </button>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
