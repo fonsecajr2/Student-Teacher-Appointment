@@ -27,22 +27,29 @@ export default function Login(){
     };
 
     return(
-        <div>
-            <form onSubmit={handleLogin}>
+        <div className='flex items-center justify-center min-h-screen bg-amber-400'>
+            <form onSubmit={handleLogin} className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm flex flex-col gap-4"
+            >
                 <input type="email"
                 value={email}
                 placeholder='email@gmail.com'
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
                 <input type="password" 
                 value={password}
                 placeholder='Your Password'
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                className="border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
 
-                <button type='submit'>Login</button>
+                <button type='submit'
+                className="bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 transition duration-300"
+                >
+                    Login
+                </button>
             </form>
         </div>
     )
