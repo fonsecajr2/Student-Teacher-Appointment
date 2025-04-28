@@ -74,7 +74,7 @@ const TeacherDashboard = () => {
             <p><strong>Aluno:</strong> {app.studentName || "ID: " + app.userId}</p>
             <p><strong>Data:</strong> {app.datetime}</p>
             <p><strong>Status:</strong> {app.status}</p>
-            <button onClick={() => handleStatus(app.id, "aprovado")} className="bg-green-500 text-white px-2 rounded mr-2">
+            <button onClick={() => handleStatus(app.id, "aproved")} className="bg-green-500 text-white px-2 rounded mr-2">
               Aprove
             </button>
             <button onClick={() => handleStatus(app.id, "cancelado")} className="bg-red-500 text-white px-2 rounded">

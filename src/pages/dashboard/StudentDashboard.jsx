@@ -16,8 +16,8 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     if (user?.role === "student" && user?.approved === false) {
-      alert("Sua conta ainda não foi aprovada. Aguarde a aprovação do administrador.");
-      navigate("/login"); // ou para uma tela de espera se quiser
+      alert("Your account has not been approved yet. Please wait for admin approval.");
+      navigate("/login"); // or redirect to a pending page if you prefer
     }
   }, [user, navigate]);
 
@@ -28,12 +28,12 @@ export default function StudentDashboard() {
         setLoading(false);
       })
       .catch((err) => {
-        setError("Erro ao carregar professores.");
+        setError("Failed to load teachers.");
         console.error(err);
         setLoading(false);
       });
 
-    getAppointmentsByUserId(user.uid).then(setAppointments); // Carregar os agendamentos do aluno
+    getAppointmentsByUserId(user.uid).then(setAppointments); // Load student's appointments
   }, [user]);
 
   const handleDateChange = (teacherId, value) => {
@@ -43,7 +43,7 @@ export default function StudentDashboard() {
   const handleBook = async (teacherId) => {
     const datetime = dateInputs[teacherId];
     if (!datetime) {
-      alert("Por favor, selecione uma data e hora.");
+      alert("Please select a date and time.");
       return;
     }
 
@@ -52,76 +52,85 @@ export default function StudentDashboard() {
         userId: user.uid,
         teacherId,
         datetime,
-        status: "pendente"
+        status: "pending"
       });
-      alert("Agendamento solicitado!");
+      alert("Appointment requested!");
     } catch (err) {
-      console.error("Erro ao agendar:", err);
-      alert("Falha ao agendar.");
+      console.error("Failed to book:", err);
+      alert("Failed to request appointment.");
     }
   };
 
   const handleSend = async (toId) => {
     try {
-      await sendMessage({ fromId: user.uid, toId, content: "Olá, gostaria de conversar." });
-      alert("Mensagem enviada!");
+      await sendMessage({ fromId: user.uid, toId, content: "Hello, I would like to talk." });
+      alert("Message sent!");
     } catch (err) {
-      console.error("Erro ao enviar mensagem:", err);
-      alert("Falha ao enviar mensagem.");
+      console.error("Failed to send message:", err);
+      alert("Failed to send message.");
     }
   };
 
   return (
-    <div className="min-h-screen bg-amber-400 p-4">
-      <h2 className="text-2xl font-bold mb-4 text-center">Buscar Professores</h2>
+    <div className="min-h-screen bg-amber-400 p-6">
+      
+      <h2 className="text-3xl font-bold mb-6 text-center text-white">Find a Teacher</h2>
 
-      {loading && <p className="text-center">Carregando professores...</p>}
+      {loading && <p className="text-center text-white">Loading teachers...</p>}
       {error && <p className="text-center text-red-700">{error}</p>}
 
       {!loading && teachers.length === 0 && (
-        <p className="text-center text-red-600">Nenhum professor encontrado.</p>
+        <p className="text-center text-red-600">No teachers found.</p>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {teachers.map((teacher) => (
-          <div key={teacher.id} className="bg-white rounded-xl shadow p-4">
-            <p><strong>Nome:</strong> {teacher.name}</p>
-            <p><strong>Departamento:</strong> {teacher.department}</p>
-            <p><strong>Matéria:</strong> {teacher.subject}</p>
+          <div key={teacher.id} className="bg-white rounded-2xl shadow-lg p-5">
+            <p className="text-gray-700"><strong>Name:</strong> {teacher.name}</p>
+            <p className="text-gray-700"><strong>Department:</strong> {teacher.department}</p>
+            <p className="text-gray-700"><strong>Subject:</strong> {teacher.subject}</p>
 
             <input
               type="datetime-local"
               value={dateInputs[teacher.id] || ""}
               onChange={(e) => handleDateChange(teacher.id, e.target.value)}
-              className="mt-2 border border-gray-300 px-2 py-1 rounded w-full"
+              className="mt-4 border border-gray-300 px-3 py-2 rounded w-full focus:ring-2 focus:ring-amber-300"
             />
 
-            <div className="flex gap-2 mt-3">
+            <div className="flex gap-3 mt-4">
               <button
                 onClick={() => handleBook(teacher.id)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
               >
-                Agendar
+                Book Appointment
               </button>
               <button
                 onClick={() => handleSend(teacher.id)}
-                className="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded"
+                className="flex-1 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-lg transition"
               >
-                Enviar Mensagem
+                Send Message
               </button>
             </div>
           </div>
         ))}
       </div>
 
-      <h2 className="text-2xl font-bold mb-4 text-center">Meus Agendamentos</h2>
-      {appointments.map((appointment) => (
-        <div key={appointment.id} className="border p-2 my-2 bg-white rounded">
-          <p><strong>Professor:</strong> {appointment.teacherName}</p>
-          <p><strong>Data:</strong> {appointment.datetime}</p>
-          <p><strong>Status:</strong> {appointment.status}</p>
-        </div>
-      ))}
+      <h2 className="text-3xl font-bold mb-6 mt-10 text-center text-white">My Appointments</h2>
+
+      {appointments.length === 0 && !loading && (
+        <p className="text-center text-white">You have no appointments yet.</p>
+      )}
+
+      <div className="space-y-4">
+        {appointments.map((appointment) => (
+          <div key={appointment.id} className="bg-white border p-4 rounded-lg shadow-md">
+            <p className="text-gray-700"><strong>Teacher:</strong> {appointment.teacherName}</p>
+            <p className="text-gray-700"><strong>Date:</strong> {appointment.datetime}</p>
+            <p className="text-gray-700"><strong>Status:</strong> {appointment.status}</p>
+          </div>
+        ))}
+      </div>
+
     </div>
   );
 }
