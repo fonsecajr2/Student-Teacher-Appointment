@@ -1,18 +1,25 @@
-// src/pages/Unauthorized.jsx
 import React from "react";
 import { Link } from "react-router-dom";
 
 const Unauthorized = () => {
   return (
-    <div className="flex flex-col items-center justify-center h-screen text-center px-4">
-      <h1 className="text-4xl font-bold text-red-600 mb-4">Acesso negado</h1>
-      <p className="text-lg mb-6">Você não tem permissão para acessar esta página.</p>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-amber-400 text-center p-6">
+      
+      <h1 className="text-4xl font-bold text-red-600 mb-6">
+        Access Denied
+      </h1>
+
+      <p className="text-lg text-white mb-8 max-w-md">
+        You do not have permission to access this page.
+      </p>
+
       <Link
         to="/login"
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        className="bg-white text-amber-500 font-semibold px-6 py-3 rounded-lg shadow hover:bg-amber-100 transition duration-300"
       >
-        Voltar para o Login
+        Back to Login
       </Link>
+
     </div>
   );
 };
