@@ -7,6 +7,7 @@ import {
   approveStudent,
   getApprovedStudents
 } from "../../services/userService";
+import { logout } from "../../services/auth";
 import { useProtected } from "../../context/ProtectedContext";
 import { db } from "../../services/firebase";
 import { doc, setDoc } from "firebase/firestore";
@@ -149,9 +150,26 @@ const AdminDashboard = () => {
 };
 
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      window.location.reload();
+    } catch (error) {
+      console.error("Logout failed:", error);
+      alert("Logout failed. Please try again.");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-amber-400 p-4">
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={handleLogout}
+          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+        >
+          Logout
+        </button>
+      </div>
       <h2 className="text-2xl font-bold mb-4 text-center">Register New Teacher</h2>
 
       <div className="bg-white rounded-xl shadow p-6 mb-6">
