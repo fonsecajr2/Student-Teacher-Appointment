@@ -1,5 +1,6 @@
 import { db } from './firebase';
 import { collection, addDoc, getDocs, query, where, orderBy, doc, getDoc } from 'firebase/firestore';
+import logger from '../utils/logger.js';
 
 // Reference to the "messages" collection
 const messageCollection = collection(db, "messages");
@@ -13,6 +14,7 @@ const usersCollection = collection(db, "users");  // Assuming there is a users c
  * @param {string} param0.content - Message text
  */
 export const sendMessage = async ({ fromId, toId, content }) => {
+  logger.info(`Sending message from user ${fromId} to user ${toId} with content: ${content}`);
   const messageData = {
     fromId,
     toId,
@@ -20,6 +22,7 @@ export const sendMessage = async ({ fromId, toId, content }) => {
     timestamp: new Date() // Save the exact sending time
   };
   await addDoc(messageCollection, messageData);
+  logger.info(`Message sent from user ${fromId} to user ${toId}`);
 };
 
 /**
@@ -29,6 +32,7 @@ export const sendMessage = async ({ fromId, toId, content }) => {
  * @returns {Promise<Array>} - List of message objects with user names
  */
 export const getMessagesByUserId = async (userId) => {
+  logger.info(`Fetching messages for userId: ${userId}`);
   const fromQuery = query(messageCollection, where("fromId", "==", userId));
   const toQuery = query(messageCollection, where("toId", "==", userId));
 
@@ -61,6 +65,7 @@ export const getMessagesByUserId = async (userId) => {
     };
   }));
 
+  logger.info(`Fetched ${messagesWithNames.length} messages for userId: ${userId}`);
   return messagesWithNames;
 };
 
@@ -70,7 +75,10 @@ export const getMessagesByUserId = async (userId) => {
  * @returns {Promise<Array>} - List of all messages sorted by timestamp
  */
 export const getAllMessages = async () => {
+  logger.info(`Fetching all messages`);
   const allMessagesQuery = query(messageCollection, orderBy("timestamp", "asc"));
   const snapshot = await getDocs(allMessagesQuery);
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const results = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  logger.info(`Fetched ${results.length} total messages`);
+  return results;
 };
